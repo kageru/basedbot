@@ -17,10 +17,10 @@ lazy_static! {
 
 impl EventHandler for Handler {
     fn message(&self, ctx: Context, message: Message) {
-        if message.guild_id != Some(*SERVER_ID) || message.channel_id != *MEME_CHANNEL {
+        if message.guild_id != Some(*SERVER_ID) {
             return;
         }
-        if is_meme(&message) {
+        if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
             react(&ctx, &message, 748564944449962017, "based");
             react(&ctx, &message, 748564944819060856, "cringe");
             return;

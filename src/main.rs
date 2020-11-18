@@ -33,6 +33,7 @@ impl EventHandler for Handler {
         }
     }
 
+    /*
     fn reaction_add(&self, ctx: Context, added_reaction: Reaction) {
         if is_delet_this(&added_reaction.emoji) {
             let msg = added_reaction.message(&ctx).unwrap();
@@ -55,6 +56,7 @@ impl EventHandler for Handler {
             }
         }
     }
+    */
 }
 
 fn is_delet_this(t: &ReactionType) -> bool {

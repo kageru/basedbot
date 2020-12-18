@@ -32,31 +32,6 @@ impl EventHandler for Handler {
             react(&ctx, &message, 748564944819060856, "cringe");
         }
     }
-
-    /*
-    fn reaction_add(&self, ctx: Context, added_reaction: Reaction) {
-        if is_delet_this(&added_reaction.emoji) {
-            let msg = added_reaction.message(&ctx).unwrap();
-            if msg.channel_id != *MEME_CHANNEL
-                && is_meme(&msg)
-                && msg
-                    .reactions
-                    .iter()
-                    .find(|r| is_delet_this(&r.reaction_type))
-                    .map(|r| r.count >= 5)
-                    .unwrap_or(false)
-            {
-                println!(
-                    "Deleting message {:?} with content {} and attachments {:?}",
-                    msg, msg.content, msg.attachments
-                );
-                if let Err(e) = msg.delete(&ctx) {
-                    println!("Could not delete, error was: {:?}", e);
-                }
-            }
-        }
-    }
-    */
 }
 
 fn is_delet_this(t: &ReactionType) -> bool {

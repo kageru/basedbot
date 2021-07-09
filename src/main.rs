@@ -19,7 +19,11 @@ impl EventHandler for Handler {
         if message.guild_id != Some(*SERVER_ID) {
             return;
         }
-        if message.content.contains("https://media.discordapp.net/") {
+        if message.content.contains("https://media.discordapp.net/")
+            && (message.content.contains(".mp4")
+                || message.content.contains(".webm")
+                || message.content.contains(".mov"))
+        {
             if let Err(e) = message.channel_id.say(&ctx, "Working link:") {
                 eprint!("Could not send fixed link: {:?}", e);
             }

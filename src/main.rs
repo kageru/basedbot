@@ -12,7 +12,6 @@ lazy_static! {
     static ref SERVER_ID: GuildId = GuildId(std::env::args().nth(1).unwrap().parse().unwrap());
     static ref MEME_CHANNEL: ChannelId =
         ChannelId(std::env::args().nth(2).unwrap().parse().unwrap());
-    static ref DELET_THIS_ID: EmojiId = EmojiId(323238442869719040);
 }
 
 impl EventHandler for Handler {
@@ -20,28 +19,33 @@ impl EventHandler for Handler {
         if message.guild_id != Some(*SERVER_ID) {
             return;
         }
+        if message.content.contains("https://media.discordapp.net/") {
+            if let Err(e) = message.channel_id.say(&ctx, "Working link:") {
+                eprint!("Could not send fixed link: {:?}", e);
+            }
+            if let Err(e) = message.channel_id.say(
+                &ctx,
+                message.content_safe(&ctx).replace(
+                    "https://media.discordapp.net/",
+                    "https://cdn.discordapp.com/",
+                ),
+            ) {
+                eprint!("Could not send fixed link: {:?}", e);
+            };
+        }
         if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
             react(&ctx, &message, 748564944449962017, "based");
             react(&ctx, &message, 748564944819060856, "cringe");
             return;
         }
+        /*
         if is_based(&message.content.to_lowercase()) {
             react(&ctx, &message, 748564944449962017, "based");
         }
         if is_cringe(&message.content.to_lowercase()) {
             react(&ctx, &message, 748564944819060856, "cringe");
         }
-    }
-}
-
-fn is_delet_this(t: &ReactionType) -> bool {
-    match t {
-        ReactionType::Custom {
-            animated: _,
-            id,
-            name: _,
-        } => id == &*DELET_THIS_ID,
-        _ => false,
+        */
     }
 }
 

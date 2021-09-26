@@ -40,16 +40,19 @@ impl EventHandler for Handler {
         if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
             react(&ctx, &message, 748564944449962017, "based");
             react(&ctx, &message, 748564944819060856, "cringe");
-            return;
         }
-        /*
-        if is_based(&message.content.to_lowercase()) {
-            react(&ctx, &message, 748564944449962017, "based");
+        let content = message.content.to_lowercase();
+        if content.contains("@everyone") && content.contains("nitro") && content.contains("http") {
+            if let Err(e) = message.delete(&ctx) {
+                eprint!("Could not delete spam: {}", e);
+            }
+            if let Err(e) = message.channel_id.say(
+                &ctx,
+                &format!("{}: your message has been deleted because it triggered my spam filter. If you believe this to be in error, please contact the mods.", message.author.mention())
+            ) {
+                eprint!("Could not respond to spam: {}", e);
+            }
         }
-        if is_cringe(&message.content.to_lowercase()) {
-            react(&ctx, &message, 748564944819060856, "cringe");
-        }
-        */
     }
 }
 
@@ -66,14 +69,6 @@ fn react(ctx: &Context, msg: &Message, emoji: u64, name: &str) {
 
 fn is_meme(msg: &Message) -> bool {
     !msg.attachments.is_empty() || msg.content.to_lowercase().contains("http")
-}
-
-fn is_cringe(s: &str) -> bool {
-    s.contains("cringe") || s.contains("cringy")
-}
-
-fn is_based(s: &str) -> bool {
-    (s.contains("based") || s.contains("basiert")) && !s.contains("based on")
 }
 
 pub fn main() {

@@ -19,7 +19,8 @@ impl EventHandler for Handler {
         if message.guild_id != Some(*SERVER_ID) {
             return;
         }
-        if message.content.contains("https://media.discordapp.net/")
+        if message.author.id != 733488485813584012 // that one idiot who always posts 5 links per message
+            && message.content.contains("https://media.discordapp.net/")
             && (message.content.contains(".mp4")
                 || message.content.contains(".webm")
                 || message.content.contains(".mov"))
@@ -42,7 +43,7 @@ impl EventHandler for Handler {
             react(&ctx, &message, 748564944819060856, "cringe");
         }
         let content = message.content.to_lowercase();
-        if content.contains("@everyone") && content.contains("nitro") && content.contains("http") {
+        if content.contains("everyone") && content.contains("nitro") && content.contains("http") {
             if let Err(e) = message.delete(&ctx) {
                 eprint!("Could not delete spam: {}", e);
             }

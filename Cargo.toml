@@ -2,9 +2,11 @@
 name = "basedbot"
 version = "0.1.0"
 authors = ["kageru <kageru@encode.moe>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-serenity = "0.8.7"
+serenity = "0.10"
 lazy_static = "1.4.0"
 regex = { version = "1.5.6", default_features = false, features = ["std", "unicode"] }
+async-trait = "0.1.53"
+tokio = { version = "1.18.2", features = ["rt-multi-thread"] }

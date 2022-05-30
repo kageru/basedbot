@@ -1,11 +1,15 @@
 use async_trait::async_trait;
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
-use serenity::model::channel::ReactionType;
-use serenity::model::id::{ChannelId, EmojiId, GuildId};
-use serenity::model::prelude::*;
-use serenity::prelude::*;
-use serenity::Client;
+use serenity::{
+    model::{
+        channel::ReactionType,
+        id::{ChannelId, EmojiId, GuildId},
+        prelude::*,
+    },
+    prelude::*,
+    Client,
+};
 
 struct Handler;
 
@@ -19,85 +23,75 @@ lazy_static! {
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, message: Message) {
-        if message.guild_id != Some(*SERVER_ID) {
-            return;
-        }
-        // That other idiot who ends words with “a” instead of “er”
-        if message.author.id == 261246789942902794 && RETARD_REGEX.is_match(&message.content) {
-            if let Err(e) = message.delete(&ctx).await {
-                eprintln!("Could not delete retarded message: {e}");
-            }
-            if let Err(e) = message
-                .channel_id
-                .say(&ctx, &format!("{} wollte sagen:", message.author.mention()))
-                .await
-            {
-                eprint!("Could not send sanitized message intro: {e}");
-            }
-            if let Err(e) = message
-                .channel_id
-                .say(
-                    &ctx,
-                    RETARD_REGEX.replace_all(&message.content_safe(&ctx).await, |caps: &Captures| {
-                        format!("{}**er**{}", &caps[1], &caps[2])
-                    }),
-                )
-                .await
-            {
-                eprint!("Could not send sanitized message: {e}");
-            }
-        }
-        if message.author.id != 733488485813584012 // that one idiot who always posts 5 links per message
-            && message.content.contains("https://media.discordapp.net/")
-            && (message.content.contains(".mp4")
-                || message.content.contains(".webm")
-                || message.content.contains(".mov"))
-        {
-            if let Err(e) = message.channel_id.say(&ctx, "Working link:").await {
-                eprint!("Could not send fixed link: {e}");
-            }
-            if let Err(e) = message
-                .channel_id
-                .say(
-                    &ctx,
-                    message.content_safe(&ctx).await.replace(
-                        "https://media.discordapp.net/",
-                        "https://cdn.discordapp.com/",
-                    ),
-                )
-                .await
-            {
-                eprint!("Could not send fixed link: {e}");
-            };
-        }
-        if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
-            react(&ctx, &message, 748564944449962017, "based").await;
-            react(&ctx, &message, 748564944819060856, "cringe").await;
-        }
-        let content = message.content.to_lowercase();
-        if content.contains("everyone") && content.contains("nitro") && content.contains("http") {
-            if let Err(e) = message.delete(&ctx).await {
-                eprint!("Could not delete spam: {e}");
-            }
-            if let Err(e) = message.channel_id.say(
-                &ctx,
-                &format!("{}: your message has been deleted because it triggered my spam filter. If you believe this to be in error, please contact the mods.", message.author.mention())
-            ).await {
-                eprint!("Could not respond to spam: {e}");
-            }
+        if let Err(e) = handle_message(ctx, message).await {
+            eprintln!("Error during command execution: {e}");
         }
     }
 }
 
-async fn react(ctx: &Context, msg: &Message, emoji: u64, name: &str) {
+async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::Error> {
+    if message.guild_id != Some(*SERVER_ID) {
+        return Ok(());
+    }
+    // That other idiot who ends words with “a” instead of “er”
+    if message.author.id == 261246789942902794 && RETARD_REGEX.is_match(&message.content) {
+        message.delete(&ctx).await?;
+        message
+            .channel_id
+            .say(&ctx, &format!("{} wollte sagen:", message.author.mention()))
+            .await?;
+        message
+            .channel_id
+            .say(
+                &ctx,
+                RETARD_REGEX.replace_all(&message.content_safe(&ctx).await, |caps: &Captures| {
+                    format!("{}**er**{}", &caps[1], &caps[2])
+                }),
+            )
+            .await?;
+    }
+    // that one idiot who always posts 5 links per message
+    if message.author.id != 733488485813584012 && contains_video_link(&message.content) {
+        message.channel_id.say(&ctx, "Working link:").await?;
+        let fixed_link = message.content_safe(&ctx).await.replace(
+            "https://media.discordapp.net/",
+            "https://cdn.discordapp.com/",
+        );
+        message.channel_id.say(&ctx, fixed_link).await?;
+    }
+    if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
+        react(&ctx, &message, 748564944449962017, "based").await?;
+        react(&ctx, &message, 748564944819060856, "cringe").await?;
+    };
+    let content = message.content_safe(&ctx).await.to_lowercase();
+    if content.contains("everyone") && content.contains("nitro") && content.contains("http") {
+        message.delete(&ctx).await?;
+        message.channel_id.say(
+            &ctx,
+            &format!("{}: your message has been deleted because it triggered my spam filter. If you believe this to be in error, please contact the mods.", message.author.mention())
+        ).await?;
+    }
+    Ok(())
+}
+
+fn contains_video_link(msg: &str) -> bool {
+    msg.contains("https://media.discordapp.net/")
+        && (msg.contains(".mp4") || msg.contains(".webm") || msg.contains(".mov"))
+}
+
+async fn react(
+    ctx: &Context,
+    msg: &Message,
+    emoji: u64,
+    name: &str,
+) -> Result<(), serenity::Error> {
     let reaction = ReactionType::Custom {
         animated: false,
         id: EmojiId(emoji),
         name: Some(name.to_string()),
     };
-    if let Err(e) = msg.react(ctx, reaction).await {
-        println!("Could not react, error was: {e}");
-    }
+    msg.react(ctx, reaction).await?;
+    Ok(())
 }
 
 fn is_meme(msg: &Message) -> bool {

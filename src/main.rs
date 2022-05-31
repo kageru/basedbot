@@ -17,7 +17,7 @@ lazy_static! {
     static ref SERVER_ID: GuildId = GuildId(std::env::args().nth(1).unwrap().parse().unwrap());
     static ref MEME_CHANNEL: ChannelId =
         ChannelId(std::env::args().nth(2).unwrap().parse().unwrap());
-    static ref RETARD_REGEX: Regex = Regex::new("([^j])a( |$)").unwrap();
+    static ref RETARD_REGEX: Regex = Regex::new("([^djDJh ])a( |$)").unwrap();
 }
 
 #[async_trait]
@@ -44,9 +44,16 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
             .channel_id
             .say(
                 &ctx,
-                RETARD_REGEX.replace_all(&message.content_safe(&ctx).await, |caps: &Captures| {
-                    format!("{}**er**{}", &caps[1], &caps[2])
-                }),
+                RETARD_REGEX
+                    .replace_all(&message.content_safe(&ctx).await, |caps: &Captures| {
+                        format!("{}**er**{}", &caps[1], &caps[2])
+                    })
+                    // some common false positives
+                    .replace("etw**er**", "etwa")
+                    .replace("europ**er**", "europa")
+                    .replace("amerik**er**", "amerika")
+                    .replace("chin**er**", "china")
+                    .replace("mang**er**", "manga"),
             )
             .await?;
     }

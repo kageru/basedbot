@@ -1,6 +1,7 @@
+#![feature(option_result_contains)]
 use async_trait::async_trait;
+use fancy_regex::Regex;
 use lazy_static::lazy_static;
-use regex::{Captures, Regex};
 use serenity::{
     model::{
         channel::ReactionType,
@@ -17,7 +18,8 @@ lazy_static! {
     static ref SERVER_ID: GuildId = GuildId(std::env::args().nth(1).unwrap().parse().unwrap());
     static ref MEME_CHANNEL: ChannelId =
         ChannelId(std::env::args().nth(2).unwrap().parse().unwrap());
-    static ref RETARD_REGEX: Regex = Regex::new("([^djDJh ])a( |$)").unwrap();
+    static ref RETARD_REGEX: Regex =
+        Regex::new("(?<!(. | j| d|op|in|us|ng|si|tw|dd))a( |$)").unwrap();
 }
 
 #[async_trait]
@@ -29,32 +31,24 @@ impl EventHandler for Handler {
     }
 }
 
+fn fix_spelling(msg: &str) -> String {
+    RETARD_REGEX.replace_all(&msg, "**er** ").trim().to_owned()
+}
+
 async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::Error> {
     if message.guild_id != Some(*SERVER_ID) {
         return Ok(());
     }
     // That other idiot who ends words with “a” instead of “er”
-    if message.author.id == 261246789942902794 && RETARD_REGEX.is_match(&message.content) {
+    if message.author.id == 261246789942902794
+        && RETARD_REGEX.is_match(&message.content).contains(&true)
+        && !message.content.starts_with("a ")
+    {
         message.delete(&ctx).await?;
+        let fixed = fix_spelling(&message.content);
         message
             .channel_id
-            .say(&ctx, &format!("{} wollte sagen:", message.author.mention()))
-            .await?;
-        message
-            .channel_id
-            .say(
-                &ctx,
-                RETARD_REGEX
-                    .replace_all(&message.content_safe(&ctx).await, |caps: &Captures| {
-                        format!("{}**er**{}", &caps[1], &caps[2])
-                    })
-                    // some common false positives
-                    .replace("etw**er**", "etwa")
-                    .replace("europ**er**", "europa")
-                    .replace("amerik**er**", "amerika")
-                    .replace("chin**er**", "china")
-                    .replace("mang**er**", "manga"),
-            )
+            .say(&ctx, &format!("{}: {}", message.author.mention(), fixed))
             .await?;
     }
     // that one idiot who always posts 5 links per message
@@ -113,4 +107,24 @@ async fn main() {
             .await
             .expect("Could not create client");
     client.start().await.expect("could not start");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fix_spelling_test() {
+        let msg = "aba ihr meint es ja bessa zu wissen ohne euch damit auseinanda gesetzt zu haben oda zu wollen";
+        let expected = "ab**er** ihr meint es ja bess**er** zu wissen ohne euch damit auseinand**er** gesetzt zu haben od**er** zu wollen";
+        assert_eq!(fix_spelling(msg), expected);
+        let msg = "your a bad person";
+        assert_eq!(fix_spelling(msg), msg);
+        let msg = "china usa europa da ja manga asia etwa unsa";
+        let expected = "china usa europa da ja manga asia etwa uns**er**";
+        assert_eq!(fix_spelling(msg), expected);
+        let msg = "guta tip";
+        let expected = "gut**er** tip";
+        assert_eq!(fix_spelling(msg), expected);
+    }
 }

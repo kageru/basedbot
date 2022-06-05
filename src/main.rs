@@ -51,15 +51,6 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
             .say(&ctx, &format!("{}: {}", message.author.mention(), fixed))
             .await?;
     }
-    // that one idiot who always posts 5 links per message
-    if message.author.id != 733488485813584012 && contains_video_link(&message.content) {
-        message.channel_id.say(&ctx, "Working link:").await?;
-        let fixed_link = message.content_safe(&ctx).await.replace(
-            "https://media.discordapp.net/",
-            "https://cdn.discordapp.com/",
-        );
-        message.channel_id.say(&ctx, fixed_link).await?;
-    }
     if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
         react(&ctx, &message, 748564944449962017, "based").await?;
         react(&ctx, &message, 748564944819060856, "cringe").await?;
@@ -73,11 +64,6 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
         ).await?;
     }
     Ok(())
-}
-
-fn contains_video_link(msg: &str) -> bool {
-    msg.contains("https://media.discordapp.net/")
-        && (msg.contains(".mp4") || msg.contains(".webm") || msg.contains(".mov"))
 }
 
 async fn react(

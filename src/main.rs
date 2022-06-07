@@ -57,6 +57,10 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
     };
     let content = message.content_safe(&ctx).await.to_lowercase();
     if content.contains("everyone") && content.contains("nitro") && content.contains("http") {
+        println!(
+            "Deleting probable spam from user {}: “{}”",
+            message.author.name, content
+        );
         message.delete(&ctx).await?;
         message.channel_id.say(
             &ctx,

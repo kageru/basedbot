@@ -19,7 +19,7 @@ lazy_static! {
     static ref MEME_CHANNEL: ChannelId =
         ChannelId(std::env::args().nth(2).unwrap().parse().unwrap());
     static ref RETARD_REGEX: Regex =
-        Regex::new("(?<!(. | j| d|op|in|us|ng|si|tw|dd|nd))a( |$)").unwrap();
+        Regex::new("(?<!(. | j| d|op|in|us|ng|si|tw|dd|nd| n))a( |$)").unwrap();
 }
 
 #[async_trait]
@@ -45,6 +45,7 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
         && !message.content.starts_with("a ")
         && !message.content.starts_with("ja ")
         && !message.content.starts_with("da ")
+        && !message.content.starts_with("na ")
     {
         message.delete(&ctx).await?;
         let fixed = fix_spelling(&message.content);

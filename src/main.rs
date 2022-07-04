@@ -39,6 +39,7 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
     if message.guild_id != Some(*SERVER_ID) {
         return Ok(());
     }
+    /*
     // That other idiot who ends words with “a” instead of “er”
     if message.author.id == 261246789942902794
         && RETARD_REGEX.is_match(&message.content).contains(&true)
@@ -54,6 +55,7 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
             .say(&ctx, &format!("{}: {}", message.author.mention(), fixed))
             .await?;
     }
+    */
     if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
         react(&ctx, &message, 748564944449962017, "based").await?;
         react(&ctx, &message, 748564944819060856, "cringe").await?;

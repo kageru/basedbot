@@ -5,8 +5,7 @@ authors = ["kageru <kageru@encode.moe>"]
 edition = "2021"
 
 [dependencies]
-serenity = { version = "0.10", default_features = false, features = ["client", "rustls_backend", "model", "builder", "gateway", "utils", "cache"] }
-lazy_static = "1.4.0"
-fancy-regex = "0.10"
-async-trait = "0.1.53"
-tokio = { version = "1.18.2", features = ["rt-multi-thread"] }
+serenity = { version = "0.11", default_features = false, features = ["client", "rustls_backend", "model", "builder", "gateway", "utils", "cache"] }
+lazy_static = "1"
+async-trait = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread"] }

@@ -25,6 +25,17 @@ impl EventHandler for Handler {
             eprintln!("Error during command execution: {e}");
         }
     }
+
+    async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
+        if reaction.channel_id == *MEME_CHANNEL
+            // you know who you are
+            && reaction.user_id == Some(UserId(921332064056389663))
+        {
+            if let Err(e) = reaction.delete(&ctx).await {
+                eprintln!("Could not delete reaction spam: {e}");
+            }
+        }
+    }
 }
 
 async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::Error> {
@@ -32,7 +43,9 @@ async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::
         return Ok(());
     }
     if message.channel_id == *MEME_CHANNEL && is_meme(&message) {
-        react(&ctx, &message, 748564944449962017, "based").await?;
+        react(&ctx, &message, 748564944449962017, "based")
+            .await
+            .inspect_err(|e| eprintln!("Could not react to meme: {e}"))?;
         react(&ctx, &message, 748564944819060856, "cringe").await?;
     };
     let content = message.content_safe(&ctx).to_lowercase();
@@ -73,7 +86,7 @@ fn is_meme(msg: &Message) -> bool {
 async fn main() {
     let mut client = Client::builder(
         std::env::var("DISCORD_TOKEN").expect("no token in environment"),
-        GatewayIntents::default(),
+        GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT,
     )
     .event_handler(Handler)
     .await

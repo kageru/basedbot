@@ -24,17 +24,6 @@ impl EventHandler for Handler {
             eprintln!("Error during command execution: {e}");
         }
     }
-
-    async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
-        if reaction.channel_id == *MEME_CHANNEL
-            // you know who you are
-            && reaction.user_id == Some(UserId::new(921332064056389663))
-        {
-            if let Err(e) = reaction.delete(&ctx).await {
-                eprintln!("Could not delete reaction spam: {e}");
-            }
-        }
-    }
 }
 
 async fn handle_message(ctx: Context, message: Message) -> Result<(), serenity::Error> {

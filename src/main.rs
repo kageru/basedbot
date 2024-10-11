@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use lazy_static::lazy_static;
 use serenity::{
     model::{
         channel::ReactionType,
@@ -9,14 +8,14 @@ use serenity::{
     prelude::*,
     Client,
 };
+use std::sync::LazyLock;
 
 struct Handler;
 
-lazy_static! {
-    static ref SERVER_ID: GuildId = GuildId(std::env::args().nth(1).unwrap().parse().unwrap());
-    static ref MEME_CHANNEL: ChannelId =
-        ChannelId(std::env::args().nth(2).unwrap().parse().unwrap());
-}
+static SERVER_ID: LazyLock<GuildId> =
+    LazyLock::new(|| GuildId::new(std::env::args().nth(1).unwrap().parse().unwrap()));
+static MEME_CHANNEL: LazyLock<ChannelId> =
+    LazyLock::new(|| ChannelId::new(std::env::args().nth(2).unwrap().parse().unwrap()));
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -29,7 +28,7 @@ impl EventHandler for Handler {
     async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
         if reaction.channel_id == *MEME_CHANNEL
             // you know who you are
-            && reaction.user_id == Some(UserId(921332064056389663))
+            && reaction.user_id == Some(UserId::new(921332064056389663))
         {
             if let Err(e) = reaction.delete(&ctx).await {
                 eprintln!("Could not delete reaction spam: {e}");
@@ -71,7 +70,7 @@ async fn react(
 ) -> Result<(), serenity::Error> {
     let reaction = ReactionType::Custom {
         animated: false,
-        id: EmojiId(emoji),
+        id: EmojiId::new(emoji),
         name: Some(name.to_string()),
     };
     msg.react(ctx, reaction).await?;

@@ -67,7 +67,7 @@ async fn react(
 }
 
 fn is_meme(msg: &Message) -> bool {
-    !msg.attachments.is_empty() || msg.content.to_lowercase().contains("http")
+    !msg.attachments.is_empty() || msg.content.to_lowercase().contains("https://")
 }
 
 #[tokio::main]
